@@ -8,7 +8,11 @@ const orderRoutes = require("./routes/order");
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://logictics-eight.vercel.app"],
+  }),
+);
 app.use(express.json());
 
 db.query("SELECT NOW()", (err, res) => {
