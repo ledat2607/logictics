@@ -17,7 +17,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Cho phép request không có origin (như Postman hoặc Mobile app) hoặc thuộc danh sách allowedOrigins
+      
       if (
         !origin ||
         allowedOrigins.indexOf(origin) !== -1 ||

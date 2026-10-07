@@ -164,6 +164,8 @@ export default function WidgetSection() {
     },
   ];
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   const handleTracking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!trackingCode.trim()) return;
@@ -174,7 +176,7 @@ export default function WidgetSection() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/orders/tracking/${trackingCode.trim()}`,
+        `${API_BASE_URL}/api/orders/tracking/${trackingCode.trim()}`,
       );
       const data = await res.json();
 
