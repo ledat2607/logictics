@@ -1,0 +1,23 @@
+# Thư viện dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build outputs
+.next/
+client/.next/
+dist/
+server/dist/
+
+# Biến môi trường
+.env
+.env.local
+client/.env
+server/.env
+client/.env.local
+server/.env.local
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+.vscode/
