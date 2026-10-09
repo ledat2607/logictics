@@ -14,67 +14,102 @@ const generateTrackingCode = () => {
 exports.calculateFee = async (req, res) => {
   try {
     const {
-      weight_kg,
-      length_cm = 0,
-      width_cm = 0,
-      height_cm = 0,
+      weight_kg = 1,
+      length_cm = 10,
+      width_cm = 10,
+      height_cm = 10,
       from_province,
       to_province,
+      distance_km = 0,
+      service_type = "STANDARD",
     } = req.body;
 
-    if (!weight_kg || weight_kg <= 0) {
-      return res.status(400).json({ error: "Khối lượng thực phải lớn hơn 0" });
+    const w = Number(weight_kg) || 1;
+    const l = Number(length_cm) || 10;
+    const wd = Number(width_cm) || 10;
+    const h = Number(height_cm) || 10;
+    const dist = Number(distance_km) || 0;
+
+    // 1. Quy đổi trọng lượng thể tích: (Dài x Rộng x Cao) / 5000
+    const volumetricWeight = (l * wd * h) / 5000;
+
+    // 2. Trọng lượng tính cước (Lấy giá trị lớn nhất)
+    const chargeableWeight = Math.max(w, volumetricWeight);
+
+    // 3. Truy vấn Rule từ Neon DB
+    let basePrice = 22000;
+    let extraPricePerKg = 5000;
+
+    try {
+      const ruleQuery = `
+        SELECT base_price, extra_price_per_kg 
+        FROM pricing_rules 
+        WHERE is_active = true 
+          AND $1 >= min_weight_kg AND $1 <= max_weight_kg
+        ORDER BY base_price DESC
+        LIMIT 1;
+      `;
+      const { rows } = await db.query(ruleQuery, [chargeableWeight]);
+      if (rows && rows.length > 0) {
+        basePrice = parseFloat(rows[0].base_price) || 22000;
+        extraPricePerKg = parseFloat(rows[0].extra_price_per_kg) || 5000;
+      }
+    } catch (dbErr) {
+      console.warn("Dùng rule tính cước mặc định:", dbErr.message);
     }
 
-    const volumetric_weight = (length_cm * width_cm * height_cm) / 5000;
-    const chargeable_weight_kg = Math.max(
-      parseFloat(weight_kg),
-      volumetric_weight,
-    );
+    // 4. Tính Cước Khối Lượng (2kg đầu = basePrice, từ kg thứ 3 tính extraPricePerKg)
+    const extraWeight = Math.max(0, chargeableWeight - 2);
+    const weightFee = basePrice + Math.ceil(extraWeight) * extraPricePerKg;
 
-    const ruleQuery = `
-      SELECT * FROM pricing_rules 
-      WHERE is_active = true 
-        AND $1 >= min_weight_kg AND $1 <= max_weight_kg
-        AND (from_province IS NULL OR from_province = $2)
-        AND (to_province IS NULL OR to_province = $3)
-      ORDER BY base_price ASC LIMIT 1
-    `;
-    const ruleResult = await db.query(ruleQuery, [
-      chargeable_weight_kg,
-      from_province || null,
-      to_province || null,
-    ]);
-
-    let shipping_fee = 0;
-
-    if (ruleResult.rows.length > 0) {
-      const rule = ruleResult.rows[0];
-      const extraWeight = Math.max(
-        0,
-        Math.ceil(chargeable_weight_kg - rule.min_weight_kg),
-      );
-      shipping_fee =
-        parseFloat(rule.base_price) +
-        extraWeight * parseFloat(rule.extra_price_per_kg);
-    } else {
-      // Fallback mặc định
-      const basePrice = 22000;
-      const extraWeight = Math.max(0, Math.ceil(chargeable_weight_kg - 2));
-      shipping_fee = basePrice + extraWeight * 5000;
+    // 5. Tính Phụ Thu Khoảng Cách (Đã sửa liên tục không bị lót sàn 0km)
+    let distanceFee = 0;
+    if (dist > 0 && dist <= 10) {
+      distanceFee = dist * 1000; // Miễn phí/tính nhẹ 1k/km cho 10km đầu
+    } else if (dist > 10 && dist <= 30) {
+      distanceFee = 10 * 1000 + (dist - 10) * 3000;
+    } else if (dist > 30 && dist <= 100) {
+      distanceFee = 10 * 1000 + 20 * 3000 + (dist - 30) * 5000;
+    } else if (dist > 100) {
+      distanceFee = 10 * 1000 + 20 * 3000 + 70 * 5000 + (dist - 100) * 7000;
     }
 
-    res.json({
-      actual_weight_kg: parseFloat(weight_kg),
-      volumetric_weight_kg: parseFloat(volumetric_weight.toFixed(2)),
-      chargeable_weight_kg: parseFloat(chargeable_weight_kg.toFixed(2)),
-      shipping_fee,
+    let bulkySurcharge = 0;
+    if (volumetricWeight > 50) {
+      bulkySurcharge = weightFee * 0.15;
+    }
+    let totalFee = weightFee + distanceFee + bulkySurcharge;
+
+    if (service_type === "FAST") totalFee *= 1.3;
+    if (service_type === "AI_EXPRESS") totalFee *= 1.8;
+
+    const finalAmount = Math.round(totalFee);
+
+    // 6. Trả về Response chứa CẢ 2 ĐỊNH DẠNG KEY để Frontend đọc kiểu gì cũng trúng!
+    return res.json({
+      success: true,
+      shipping_fee: finalAmount,
+      total_fee: finalAmount,
+      totalFee: finalAmount,
+      actual_weight_kg: w,
+      volumetric_weight_kg: parseFloat(volumetricWeight.toFixed(2)),
+      chargeable_weight_kg: parseFloat(chargeableWeight.toFixed(2)),
+
+      // Định dạng camelCase
+      weightFee: weightFee,
+      distanceFee: distanceFee,
+      bulkySurcharge: bulkySurcharge,
+
+      // Định dạng snake_case
+      weight_fee: weightFee,
+      distance_fee: distanceFee,
+      bulky_surcharge: bulkySurcharge,
     });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("Lỗi calculateFee:", error);
+    return res.status(500).json({ error: "Không thể tính cước phí" });
   }
 };
-
 /**
  * 2. Tạo đơn hàng mới
  */
