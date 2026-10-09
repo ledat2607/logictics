@@ -29,10 +29,10 @@ export default function WhyChooseUs() {
       {" "}
       <div className="my-auto space-y-8 sm:space-y-12">
         <div className="text-center space-y-3">
-          <h2 className="text-2xl sm:text-4xl font-black text-white">
+          <span className="text-2xl sm:text-5xl font-black bg-linear-to-r from-blue-300 via-purple-600 to-blue-700 bg-clip-text text-transparent">
             Vì Sao Chọn LOGISTIX.AI?
-          </h2>
-          <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
+          </span>
+          <p className="text-slate-800 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
             Giải pháp chuyển đổi số toàn diện cho chuỗi cung ứng hiện đại.
           </p>
         </div>
@@ -43,14 +43,14 @@ export default function WhyChooseUs() {
             return (
               <div
                 key={idx}
-                className="p-6 rounded-2xl sm:rounded-3xl bg-slate-900/30 border border-slate-800/60 backdrop-blur-sm space-y-4 hover:border-blue-500/40 transition duration-300 flex flex-col justify-between"
+                className="p-6 rounded-2xl sm:rounded-3xl bg-slate-200/30 border border-transparent backdrop-blur-sm space-y-4 hover:border-blue-500/40 transition duration-300 flex flex-col justify-between"
               >
                 <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-white">{item.title}</h3>
-                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                  <h3 className="text-lg font-bold text-blue-800">{item.title}</h3>
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
                     {item.desc}
                   </p>
                 </div>

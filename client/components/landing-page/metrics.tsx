@@ -84,16 +84,15 @@ export default function Metrics() {
   ];
 
   return (
-<section className="w-full py-16 sm:py-24 px-4 sm:px-6 relative mx-auto max-w-7xl">      {/* Hiệu ứng background glow */}
+    <section className="w-full py-16 sm:py-24 px-4 sm:px-6 relative mx-auto max-w-7xl">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-75 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
-
       <div className="max-w-6xl mx-auto space-y-10 relative">
         {/* Header Section */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-900 text-xs font-semibold">
             <TrendingUp className="w-3.5 h-3.5" /> Hiệu Năng Vận Hành
           </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-blue-900 tracking-tight">
             Con Số Nói Lên Chất Lượng Dịch Vụ
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
@@ -109,13 +108,13 @@ export default function Metrics() {
             return (
               <div
                 key={item.id}
-                className="bg-slate-900/80 border border-slate-800/80 hover:border-slate-700/80 p-5 rounded-2xl shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between group"
+                className="bg-slate-100/80 border border-transparent hover:border-blue-900/80 p-5 rounded-2xl shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between group"
               >
                 <div>
                   {/* Card Top: Icon & Badge */}
                   <div className="flex items-center justify-between mb-4">
                     <div
-                      className={`p-2.5 rounded-xl bg-slate-950 border border-slate-800 ${item.textColor}`}
+                      className={`p-2.5 rounded-xl bg-slate-100 border border-blue-800 ${item.textColor}`}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
@@ -129,25 +128,25 @@ export default function Metrics() {
                   </div>
 
                   {/* Card Body: Label & Main Value */}
-                  <span className="text-xs font-medium text-slate-400 uppercase tracking-wider block">
+                  <span className="text-xs font-medium text-blue-800 uppercase tracking-wider block">
                     {item.label}
                   </span>
-                  <div className="text-3xl sm:text-4xl font-black text-white mt-1 tracking-tight">
+                  <div className="text-3xl sm:text-4xl font-black text-blue-500 mt-1 tracking-tight">
                     {item.value}
                   </div>
                 </div>
 
                 {/* Card Bottom: Progress Bar hoặc SubText */}
-                <div className="mt-4 pt-3 border-t border-slate-800/60">
+                <div className="mt-4 pt-3 border-t border-blue-800/60">
                   {item.progress ? (
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-[11px]">
-                        <span className="text-slate-400">{item.subValue}</span>
-                        <span className={`font-bold ${item.textColor}`}>
+                        <span className="text-blue-400">{item.subValue}</span>
+                        <span className={`font-bold text-blue-400 ${item.textColor}`}>
                           {item.progress}%
                         </span>
                       </div>
-                      <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                      <div className="w-full bg-slate-400 h-1.5 rounded-full overflow-hidden border border-slate-800">
                         <div
                           className={`h-full bg-linear-to-r ${item.color} rounded-full transition-all duration-1000`}
                           style={{ width: `${item.progress}%` }}
@@ -155,7 +154,7 @@ export default function Metrics() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 flex items-center gap-1">
+                    <p className="text-xs text-blue-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                       {item.subValue}
                     </p>
@@ -167,8 +166,8 @@ export default function Metrics() {
         </div>
 
         {/* Grid 2: Thanh Chỉ Số Phụ (Mini Banner Dashboard) */}
-        <div className="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 sm:p-6 backdrop-blur-md">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80">
+        <div className="bg-slate-100/40 border border-blue-800/60 rounded-2xl p-4 sm:p-6 backdrop-blur-md">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-blue-800/80">
             {secondaryStats.map((sec, idx) => {
               const SecIcon = sec.icon;
               return (
@@ -178,11 +177,11 @@ export default function Metrics() {
                     idx !== 0 ? "pt-3 sm:pt-0 sm:pl-4" : ""
                   }`}
                 >
-                  <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
+                  <div className="p-2.5 rounded-lg bg-blue-500/80 border border-blue-100/20 text-slate-100 shrink-0">
                     <SecIcon className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-lg sm:text-xl font-extrabold text-white">
+                    <div className="text-lg sm:text-xl font-extrabold text-blue-800">
                       {sec.value}
                     </div>
                     <div className="text-xs text-slate-400 font-medium line-clamp-1">

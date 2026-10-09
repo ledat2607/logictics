@@ -219,21 +219,21 @@ export default function WidgetSection() {
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
             <Calculator className="w-3.5 h-3.5" /> Tra cứu dữ liệu Real-time
           </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-blue-800 tracking-tight">
             Trung Tâm Dịch Vụ Khách Hàng
           </h2>
         </div>
 
         {/* Khung Bao Ngoài Widget */}
-        <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl backdrop-blur-xl">
+        <div className="bg-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl backdrop-blur-xl">
           {/* Tab Selector Responsive */}
-          <div className="grid grid-cols-3 bg-slate-950 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-800/80 mb-6 gap-1">
+          <div className="grid grid-cols-3 bg-slate-200 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl mb-6 gap-1">
             <button
               onClick={() => setActiveTab("tracking")}
               className={`py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
                 activeTab === "tracking"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-400 hover:text-blue-800"
               }`}
             >
               <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -245,7 +245,7 @@ export default function WidgetSection() {
               className={`py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
                 activeTab === "quote"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-400 hover:text-blue-800"
               }`}
             >
               <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -257,7 +257,7 @@ export default function WidgetSection() {
               className={`py-2 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
                 activeTab === "hubs"
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-400 hover:text-blue-800"
               }`}
             >
               <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -277,7 +277,7 @@ export default function WidgetSection() {
                   value={trackingCode}
                   onChange={(e) => setTrackingCode(e.target.value)}
                   placeholder="Nhập mã vận đơn (VD: LGTX-889922)..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 font-mono transition"
+                  className="w-full bg-slate-200 border border-transparent rounded-xl px-4 py-3 text-sm text-blue-800 font-semibold focus:outline-none focus:border-blue-500 font-mono transition"
                 />
                 <button
                   type="submit"
@@ -304,12 +304,12 @@ export default function WidgetSection() {
               )}
 
               {trackingResult && (
-                <div className="mt-6 text-left bg-slate-950/90 p-4 sm:p-6 rounded-2xl border border-slate-800 space-y-6 animate-in fade-in duration-300">
+                <div className="mt-6 text-left bg-blue-200/90 p-4 sm:p-6 rounded-2xl border border-slate-100 space-y-6 animate-in fade-in duration-300">
                   {/* Top Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-4 gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full font-mono">
+                        <span className="text-xs font-semibold text-blue-900 bg-blue-100/80 border border-blue-500/20 px-3 py-1 rounded-full font-mono">
                           {trackingResult.order.tracking_code}
                         </span>
                         {/* Trạng thái hiện tại của đơn hàng */}
@@ -319,7 +319,7 @@ export default function WidgetSection() {
                               trackingResult.order.status
                             ] || {
                               label: trackingResult.order.status,
-                              badgeBg: "bg-slate-800 text-slate-300",
+                              badgeBg: "bg-white text-blue-900",
                             };
                             return (
                               <span
@@ -330,7 +330,7 @@ export default function WidgetSection() {
                             );
                           })()}
                       </div>
-                      <h3 className="text-base sm:text-lg font-bold text-white mt-2">
+                      <h3 className="text-base sm:text-lg font-bold text-blue-800 mt-2">
                         {trackingResult.order.package_name || "Bưu kiện"} (
                         {trackingResult.order.weight_kg} kg)
                       </h3>
@@ -340,7 +340,7 @@ export default function WidgetSection() {
                       <span className="text-xs text-slate-500 block">
                         Tuyến chuyển phát
                       </span>
-                      <span className="text-sm font-semibold text-slate-300">
+                      <span className="text-sm font-semibold text-blue-900">
                         {trackingResult.order.sender_province} →{" "}
                         {trackingResult.order.receiver_province}
                       </span>
@@ -351,19 +351,18 @@ export default function WidgetSection() {
                   {trackingResult.timeline &&
                   trackingResult.timeline.length > 0 ? (
                     <div className="space-y-4 pt-1">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
                         <Navigation className="w-3.5 h-3.5 text-blue-400" />{" "}
                         Nhật ký hành trình
                       </h4>
 
-                      <div className="relative pl-6 space-y-6 border-l-2 border-slate-800/80 ml-2">
-                        {/* Đảo ngược mảng để sự kiện mới nhất hiển thị trên cùng */}
+                      <div className="relative pl-6 space-y-6 border-l-2 border-blue-800/80 ml-2">
                         {[...trackingResult.timeline]
                           .reverse()
                           .map((item, idx) => {
                             const rawStatus = item.status || item.title || "";
                             const statusMeta = STATUS_MAP[rawStatus];
-                            const isLatest = idx === 0; // Mốc thời gian mới nhất
+                            const isLatest = idx === 0;
 
                             const StatusIcon = statusMeta?.icon || CheckCircle2;
 
@@ -372,12 +371,11 @@ export default function WidgetSection() {
                                 key={item.id || idx}
                                 className="relative group"
                               >
-                                {/* Icon / Dot trên đường Line */}
                                 <div
-                                  className={`absolute -left-7.75 top-0.5 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                                  className={`absolute -left-8.5 top-0.5 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
                                     isLatest
-                                      ? "bg-blue-600 text-white ring-4 ring-blue-500/20 animate-pulse"
-                                      : "bg-slate-900 border border-slate-700 text-slate-400"
+                                      ? "bg-white text-blue-400 ring-4"
+                                      : "bg-blue-600 text-white ring-4 animate-pulse"
                                   }`}
                                 >
                                   <StatusIcon className="w-3 h-3" />
@@ -385,12 +383,11 @@ export default function WidgetSection() {
 
                                 <div>
                                   <div className="flex flex-wrap items-center gap-2">
-                                    {/* Thời gian hiển thị chuẩn tiếng Việt */}
                                     <span className="text-xs font-mono text-slate-400 font-semibold">
                                       {formatDate(item.created_at || item.time)}
                                     </span>
                                     {item.location && (
-                                      <span className="text-[11px] bg-slate-800 text-blue-400 font-medium px-2 py-0.5 rounded-md">
+                                      <span className="text-[11px] bg-slate-200 text-blue-800 font-medium px-2 py-0.5 rounded-md">
                                         {item.location}
                                       </span>
                                     )}
@@ -398,13 +395,13 @@ export default function WidgetSection() {
 
                                   {/* Nhãn trạng thái hiển thị rõ ràng */}
                                   <p
-                                    className={`text-sm font-semibold mt-1 ${isLatest ? "text-white" : "text-slate-300"}`}
+                                    className={`text-sm font-semibold mt-1 ${isLatest ? "text-slate-900/20" : "text-blue-900"}`}
                                   >
                                     {statusMeta ? statusMeta.label : rawStatus}
                                   </p>
 
                                   {item.description && (
-                                    <p className="text-xs text-slate-400 mt-1 bg-slate-900/50 p-2 rounded-lg border border-slate-800/50">
+                                    <p className="text-xs text-slate-900 mt-1 bg-slate-200/50 p-2 rounded-lg">
                                       {item.description}
                                     </p>
                                   )}
@@ -432,35 +429,35 @@ export default function WidgetSection() {
                 className="grid grid-cols-1 sm:grid-cols-3 gap-4"
               >
                 <div className="space-y-1.5">
-                  <label className="text-slate-300 text-xs font-medium flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-blue-400" /> Điểm gửi
+                  <label className="text-blue-900 font-semibold text-xs flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-blue-900" /> Điểm gửi
                   </label>
                   <input
                     type="text"
                     value={quoteSender}
                     onChange={(e) => setQuoteSender(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-200 border border-transparent rounded-xl px-3.5 py-2.5 text-sm text-blue-800 focus:outline-none focus:border-blue-500"
                     placeholder="VD: Hồ Chí Minh"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-300 text-xs font-medium flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-indigo-400" /> Điểm nhận
+                  <label className="text-blue-900 font-semibold text-xs flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-blue-900" /> Điểm nhận
                   </label>
                   <input
                     type="text"
                     value={quoteReceiver}
                     onChange={(e) => setQuoteReceiver(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-200 border border-transparent rounded-xl px-3.5 py-2.5 text-sm text-blue-800 focus:outline-none focus:border-blue-500"
                     placeholder="VD: Hà Nội"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-300 text-xs font-medium flex items-center gap-1.5">
+                  <label className="text-blue-900 font-semibold text-xs flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-purple-400" /> Trọng
                     lượng (kg)
                   </label>
@@ -468,7 +465,7 @@ export default function WidgetSection() {
                     type="text"
                     value={quoteWeight}
                     onChange={(e) => setQuoteWeight(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500"
+                    className="w-full bg-slate-200 border border-transparent rounded-xl px-3.5 py-2.5 text-sm text-blue-800 focus:outline-none focus:border-purple-500"
                     placeholder="1.7"
                     required
                   />
@@ -485,22 +482,22 @@ export default function WidgetSection() {
               </form>
 
               {estimatedFee !== null && (
-                <div className="p-5 bg-blue-950/30 border border-blue-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in">
+                <div className="p-5 bg-blue-700/90 border border-blue-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in">
                   <div>
-                    <div className="text-xs text-blue-300 font-medium flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />{" "}
+                    <div className="text-md text-white font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-900" />{" "}
                       Cước phí dự kiến
                     </div>
                     <div className="text-3xl font-black text-white mt-1">
                       {estimatedFee.toLocaleString("vi-VN")}{" "}
-                      <span className="text-xs text-slate-400 font-normal">
+                      <span className="text-xs text-slate-100 font-normal">
                         VNĐ
                       </span>
                     </div>
                   </div>
                   <a
                     href="#cta"
-                    className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition text-center flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-6 py-3 bg-blue-100 hover:bg-blue-500 hover:text-white text-blue-800 font-semibold text-sm rounded-xl transition text-center flex items-center justify-center gap-2"
                   >
                     Tạo đơn vận chuyển <ArrowRight className="w-4 h-4" />
                   </a>
@@ -520,7 +517,7 @@ export default function WidgetSection() {
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                       selectedCity === city
                         ? "bg-blue-600 text-white"
-                        : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+                        : "bg-slate-100 border border-slate-100 text-blue-400 cursor-pointer hover:bg-blue-600 hover:text-white"
                     }`}
                   >
                     {city === "ALL" ? "Tất cả bưu cục" : city}
@@ -532,10 +529,10 @@ export default function WidgetSection() {
                 {filteredHubs.map((hub) => (
                   <div
                     key={hub.id}
-                    className="p-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl space-y-2.5 hover:border-blue-500/40 transition"
+                    className="p-4 bg-slate-100 border border-slate-200 rounded-2xl space-y-2.5 hover:border-blue-500/40 transition"
                   >
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-white text-sm">
+                      <h4 className="font-bold text-blue-800 text-sm">
                         {hub.name}
                       </h4>
                       <span className="text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-md">

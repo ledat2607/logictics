@@ -6,13 +6,13 @@ import {
   Metrics,
   Navbar,
   WhyChooseUs,
-} from "./components/landing-page";
+} from "../components/landing-page";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 relative max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-background/10 text-slate-100 relative max-w-full overflow-x-hidden">
       {/* Background Glows (dùng max-w-full để không đâm thủng màn hình mobile) */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-62.5 bg-blue-600/10 blur-[100px] pointer-events-none z-0" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-62.5 bg-blue-500/80 blur-[100px] pointer-events-none z-0" />
 
       <Navbar />
 

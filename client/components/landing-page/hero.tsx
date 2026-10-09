@@ -14,16 +14,16 @@ export default function Hero() {
           </div>
 
           {/* Tiêu đề chính */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.15] tracking-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-blue-800 leading-[1.15] tracking-tight">
             Tối Ưu Vận Chuyển <br className="hidden sm:inline" />
             Bằng{" "}
-            <span className="bg-linear-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-200 via-indigo-600 to-purple-300 bg-clip-text text-transparent">
               Trí Tuệ Nhân Tạo
             </span>
           </h1>
 
           {/* Mô tả */}
-          <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+          <p className="text-slate-400 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
             Hệ thống quản lý vận tải AI hỗ trợ lập kế hoạch định tuyến thông
             minh, tối ưu cước phí và theo dõi hành trình theo thời gian thực với
             độ chính xác cao.
@@ -59,7 +59,7 @@ export default function Hero() {
 
         {/* Cột phải: Card đồ họa minh họa */}
         <div className="lg:col-span-5 relative w-full max-w-md lg:max-w-none mx-auto">
-          <div className="relative p-6 sm:p-8 bg-slate-900/60 border border-slate-800/80 rounded-3xl backdrop-blur-xl shadow-2xl space-y-6">
+          <div className="relative p-6 sm:p-8 bg-linear-to-br from-blue-400 via-5% to-purple-400/80 border border-transparent rounded-3xl backdrop-blur-xl shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -72,16 +72,16 @@ export default function Hero() {
             </div>
 
             <div className="space-y-3 font-mono text-xs sm:text-sm">
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/50 flex items-center justify-between">
-                <span className="text-slate-400">Định tuyến lộ trình:</span>
-                <span className="text-emerald-400 font-bold">Tối ưu 28%</span>
+              <div className="p-3 rounded-xl bg-slate-300/60 border border-transparent flex items-center justify-between">
+                <span className="text-slate-900">Định tuyến lộ trình:</span>
+                <span className="text-emerald-400 font-semibold">Tối ưu 28%</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/50 flex items-center justify-between">
-                <span className="text-slate-400">Thời gian dự kiến:</span>
+              <div className="p-3 rounded-xl bg-slate-300/60 border border-transparent flex items-center justify-between">
+                <span className="text-slate-900">Thời gian dự kiến:</span>
                 <span className="text-blue-400 font-bold">45 Phút (-15m)</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/50 flex items-center justify-between">
-                <span className="text-slate-400">Trạng thái AI:</span>
+              <div className="p-3 rounded-xl bg-slate-300/60 border border-transparent flex items-center justify-between">
+                <span className="text-slate-900">Trạng thái AI:</span>
                 <span className="text-indigo-400 font-bold flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />{" "}
                   Hoạt động
