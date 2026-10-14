@@ -14,3 +14,20 @@ export const formatStatus = (status: string) => {
 
   return statusMap[status.toLowerCase()] || status;
 };
+
+
+export const parseAddressComponents = (addressStr: string) => {
+  if (!addressStr) return { province: "", district: "" };
+  const parts = addressStr.split(",").map((p) => p.trim());
+  
+  // Tỉnh/Thành phố thường nằm ở cuối chuỗi địa chỉ (ví dụ: "Việt Nam" hoặc "Hồ Chí Minh")
+  let province = parts.length > 0 ? parts[parts.length - 1] : "";
+  if (province.toLowerCase() === "việt nam" || province.toLowerCase() === "vietnam") {
+    province = parts.length > 1 ? parts[parts.length - 2] : province;
+  }
+  
+  // Quận/Huyện thường nằm kề trước Tỉnh/Thành phố
+  const district = parts.length > 2 ? parts[parts.length - 3] : (parts.length > 1 ? parts[0] : "");
+
+  return { province, district };
+};
