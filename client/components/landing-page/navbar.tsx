@@ -78,7 +78,7 @@ export default function Navbar() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-slate-200/90 backdrop-blur-md border-b border-slate-100/80 py-2.5 shadow-xl rounded-2xl"
+            ? "bg-slate-200/90 backdrop-blur-xl border-b border-slate-100/80 py-2.5 shadow-xl rounded-b-2xl"
             : "bg-slate-200/60 backdrop-blur-sm py-3"
         }`}
       >
@@ -147,7 +147,7 @@ export default function Navbar() {
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-slate-950/95 border-b border-slate-800/80 backdrop-blur-2xl px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-200 shadow-2xl">
+          <div className="md:hidden bg-transparent backdrop-blur-2xl px-4 py-4 space-y-2 animate-in duration-200">
             {navItems.map((item) => {
               const active = activeSection === item.id;
               const Icon = item.icon;
@@ -158,8 +158,8 @@ export default function Navbar() {
                   onClick={(e) => scrollToSection(e, item.id)}
                   className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition ${
                     active
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                      : "text-slate-300 hover:bg-slate-900"
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-600"
+                      : "text-blue-800 hover:bg-slate-900"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -170,6 +170,13 @@ export default function Navbar() {
                 </a>
               );
             })}
+            <Button
+              onClick={() => setOpen(true)}
+              className="flex items-center w-full gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-blue-600/20"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Tạo đơn</span>
+            </Button>
           </div>
         )}
       </header>

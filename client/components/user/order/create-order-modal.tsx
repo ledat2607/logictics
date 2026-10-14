@@ -28,8 +28,13 @@ import {
   Sparkles,
   CheckCircle2,
   Loader2,
+  Notebook,
+  Eraser,
 } from "lucide-react";
 import { useOrderPricing } from "@/hooks/caculate";
+import { Textarea } from "@/components/ui/textarea";
+import { parseAddressComponents } from "@/hooks/custom";
+import { toast } from "sonner";
 
 interface CreateOrderModalProps {
   isOpen: boolean;
@@ -37,12 +42,40 @@ interface CreateOrderModalProps {
   onSuccess?: () => void;
 }
 
+const initialFormData = {
+  senderName: "",
+  senderPhone: "",
+  senderAddress: "",
+  senderProvince: "",
+  senderDistrict: "",
+
+  receiverName: "",
+  receiverPhone: "",
+  receiverAddress: "",
+  receiverProvince: "",
+  receiverDistrict: "",
+
+  packageName: "",
+  weight_kg: "1",
+  length_cm: "10",
+  width_cm: "10",
+  height_cm: "10",
+  distance_km: 0,
+
+  serviceType: "STANDARD",
+  payer: "sender",
+  codAmount: "0",
+  insuranceFee: "0",
+  note: "",
+};
+
 export default function CreateOrderModal({
   isOpen,
   onClose,
   onSuccess,
 }: CreateOrderModalProps) {
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<{
     trackingCode: string;
   } | null>(null);
@@ -62,6 +95,7 @@ export default function CreateOrderModal({
     height_cm: "10",
     serviceType: "STANDARD",
     note: "",
+    payer: "sender",
     distance_km: 0,
   });
 
@@ -77,36 +111,82 @@ export default function CreateOrderModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
 
     try {
       const baseUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+      const senderGeoInfo = parseAddressComponents(formData.senderAddress);
+      const receiverGeoInfo = parseAddressComponents(formData.receiverAddress);
+      const payload = {
+        // Thông tin người gửi
+        sender_name: formData.senderName,
+        sender_phone: formData.senderPhone,
+        sender_address_full: formData.senderAddress, // 👈 Đổi sender_address -> sender_address_full
+        sender_province: senderGeoInfo.province, // 👈 Thêm sender_province nếu cầ
+        sender_district: senderGeoInfo.district, // 👈 Thêm sender_district nếu cần
+
+        // Thông tin người nhận
+        receiver_name: formData.receiverName,
+        receiver_phone: formData.receiverPhone,
+        receiver_address_full: formData.receiverAddress, // 👈 Đổi receiver_address -> receiver_address_full
+        receiver_province: receiverGeoInfo.province, // 👈 Thêm receiver_province nếu cần
+        receiver_district: receiverGeoInfo.district, // 👈 Thêm receiver_district nếu cần
+
+        // Thông tin hàng hóa & Kích thước
+        package_name: formData.packageName || "Hàng hóa tiêu chuẩn", // 👈 Đổi item_name -> package_name
+        weight_kg:
+          Number(formData.weight_kg) || Number(formData.weight_kg) || 1,
+        length_cm:
+          Number(formData.length_cm) || Number(formData.length_cm) || 10,
+        width_cm: Number(formData.width_cm) || Number(formData.width_cm) || 10,
+        height_cm:
+          Number(formData.height_cm) || Number(formData.height_cm) || 10,
+
+        // Thông tin cước & Thanh toán
+        service_type: formData.serviceType || "STANDARD",
+        distance_km: distance || 0,
+        shipping_fee: calculatedFee,
+        payer: formData.payer || "sender",
+        cod_amount: calculatedFee || 0,
+        // insurance_fee: Number(formData.insuranceFee) || 0,
+        note: formData.note || "", // 👈 Đổi notes -> note
+      };
       const res = await fetch(`${baseUrl}/api/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          weight_kg: parseFloat(formData.weight_kg),
-          length_cm: parseFloat(formData.length_cm),
-          width_cm: parseFloat(formData.width_cm),
-          height_cm: parseFloat(formData.height_cm),
-          totalFee: calculatedFee,
-          distance_km: distance,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
-      if (res.ok) {
-        setSuccessData({
-          trackingCode: data.trackingCode || data.order?.tracking_number,
+
+      if (res.ok || data.order) {
+        const trackingCode =
+          data.order?.tracking_code ||
+          data.order?.trackingCode ||
+          data.order?.id ||
+          "Mới";
+
+        // 1. Hiển thị Toast của Sonner
+        toast.success("🎉 Tạo đơn hàng thành công!", {
+          description: `Mã vận đơn: ${trackingCode}`,
         });
-        if (onSuccess) onSuccess();
+
+        // 3. Đóng Modal
+        if (onClose) onClose();
+
+        setFormData(initialFormData);
+        setErrorMessage(null);
       } else {
-        alert(data.message || "Tạo đơn thất bại, vui lòng thử lại!");
+        // Trường hợp backend trả về lỗi 500/400
+        const errorMsg = data.error || data.message || "Tạo đơn hàng thất bại!";
+        toast.error("⚠️ Lỗi tạo đơn hàng", { description: errorMsg });
+        setErrorMessage(errorMsg);
       }
     } catch (err) {
-      console.error(err);
-      alert("Lỗi kết nối tới Server!");
+      console.error("Lỗi khi gửi yêu cầu tạo đơn:", err);
+      setErrorMessage("Không thể kết nối tới máy chủ!");
     } finally {
       setLoading(false);
     }
@@ -116,7 +196,9 @@ export default function CreateOrderModal({
     setSuccessData(null);
     onClose();
   };
-
+  const handleClearData = () => {
+    setFormData(initialFormData);
+  };
   return (
     <Dialog open={isOpen} onOpenChange={handleResetAndClose}>
       <DialogContent className="sm:max-w-180 max-h-[85vh] p-0 gap-0 bg-white border border-slate-200 text-slate-800 overflow-hidden flex flex-col rounded-2xl shadow-2xl">
@@ -415,6 +497,211 @@ export default function CreateOrderModal({
                 </CardContent>
               </Card>
 
+              <Card className="bg-slate-50/70 border-slate-200/80 shadow-none">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <Notebook className="w-4 h-4" />
+                    GHI CHÚ & THÔNG TIN BỔ SUNG
+                  </div>
+
+                  {/* Ô Nhập Ghi Chú */}
+                  <div className="space-y-1">
+                    <Label
+                      htmlFor="note"
+                      className="text-xs text-slate-600 font-medium"
+                    >
+                      Ghi chú
+                    </Label>
+                    <Textarea
+                      placeholder="Nhập ghi chú hoặc thông tin bổ sung..."
+                      value={formData.note}
+                      onChange={(e) =>
+                        setFormData({ ...formData, note: e.target.value })
+                      }
+                      className="bg-white border-slate-200 text-slate-800 text-xs"
+                    />
+                  </div>
+
+                  {/* 💡 THÊM MỚI: TÙY CHỌN NGƯỜI THANH TOÁN (PAYER) */}
+                  <div className="pt-2 border-t border-slate-200/60">
+                    <Label className="text-xs text-slate-600 font-medium mb-2 block">
+                      Người thanh toán cước
+                    </Label>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      {/* Người gửi trả */}
+                      <label
+                        onClick={() =>
+                          setFormData({ ...formData, payer: "sender" })
+                        }
+                        className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition ${
+                          formData.payer === "sender" || !formData.payer
+                            ? "bg-blue-50/80 border-blue-500 text-blue-700 font-semibold"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="payer"
+                            checked={
+                              formData.payer === "sender" || !formData.payer
+                            }
+                            onChange={() =>
+                              setFormData({ ...formData, payer: "sender" })
+                            }
+                            className="w-3.5 h-3.5 text-blue-600"
+                          />
+                          <span>Người gửi trả</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          Thanh toán ngay
+                        </span>
+                      </label>
+
+                      {/* Người nhận trả (COD) */}
+                      <label
+                        onClick={() =>
+                          setFormData({ ...formData, payer: "receiver" })
+                        }
+                        className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition ${
+                          formData.payer === "receiver"
+                            ? "bg-blue-50/80 border-blue-500 text-blue-700 font-semibold"
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="payer"
+                            checked={formData.payer === "receiver"}
+                            onChange={() =>
+                              setFormData({ ...formData, payer: "receiver" })
+                            }
+                            className="w-3.5 h-3.5 text-blue-600"
+                          />
+                          <span>Người nhận trả</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          Thu khi giao
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs text-slate-600 font-medium block">
+                      Gói dịch vụ vận chuyển
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {/* 1. Gói Standard */}
+                      <div
+                        onClick={() =>
+                          setFormData({ ...formData, serviceType: "STANDARD" })
+                        }
+                        className={`p-3 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
+                          formData.serviceType === "STANDARD" ||
+                          !formData.serviceType
+                            ? "bg-blue-50/80 border-blue-500 text-blue-800 shadow-sm"
+                            : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold">
+                            Chuyển phát Tiết kiệm
+                          </span>
+                          <input
+                            type="radio"
+                            name="serviceType"
+                            checked={
+                              formData.serviceType === "STANDARD" ||
+                              !formData.serviceType
+                            }
+                            onChange={() =>
+                              setFormData({
+                                ...formData,
+                                serviceType: "STANDARD",
+                              })
+                            }
+                            className="w-3.5 h-3.5 text-blue-600"
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-500">
+                          {" "}
+                          STANDARD (Giá cơ bản)
+                        </span>
+                      </div>
+
+                      {/* 2. Gói FAST */}
+                      <div
+                        onClick={() =>
+                          setFormData({ ...formData, serviceType: "FAST" })
+                        }
+                        className={`p-3 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
+                          formData.serviceType === "FAST"
+                            ? "bg-blue-50/80 border-blue-500 text-blue-800 shadow-sm"
+                            : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold flex items-center gap-1 text-amber-600">
+                            ⚡ Chuyển phát Hỏa tốc
+                          </span>
+                          <input
+                            type="radio"
+                            name="serviceType"
+                            checked={formData.serviceType === "FAST"}
+                            onChange={() =>
+                              setFormData({ ...formData, serviceType: "FAST" })
+                            }
+                            className="w-3.5 h-3.5 text-blue-600"
+                          />
+                        </div>
+                        <span className="text-[10px] text-slate-500">
+                          FAST (+30% cước phí)
+                        </span>
+                      </div>
+
+                      {/* 3. Gói AI EXPRESS */}
+                      <div
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            serviceType: "AI_EXPRESS",
+                          })
+                        }
+                        className={`p-3 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
+                          formData.serviceType === "AI_EXPRESS"
+                            ? "bg-amber-50/80 border-amber-500 text-amber-900 shadow-sm"
+                            : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold flex items-center gap-1 text-amber-600">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />{" "}
+                            AI Route Express
+                          </span>
+                          <input
+                            type="radio"
+                            name="serviceType"
+                            checked={formData.serviceType === "AI_EXPRESS"}
+                            onChange={() =>
+                              setFormData({
+                                ...formData,
+                                serviceType: "AI_EXPRESS",
+                              })
+                            }
+                            className="w-3.5 h-3.5 text-amber-600"
+                          />
+                        </div>
+                        <span className="text-[10px] text-amber-700 font-medium">
+                          Tối ưu AI (+80%)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Dịch vụ & Cước phí */}
               <div className="flex flex-col gap-3 p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -468,40 +755,6 @@ export default function CreateOrderModal({
                           : "• Chưa nhận diện đủ địa chỉ nhận"}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Dropdown Gói dịch vụ */}
-                  <div className="w-full sm:w-48">
-                    <Label className="text-[11px] text-slate-500 font-medium mb-1 block">
-                      Gói dịch vụ
-                    </Label>
-                    <Select
-                      value={formData.serviceType}
-                      onValueChange={(val) =>
-                        setFormData({
-                          ...formData,
-                          serviceType: val ? val : formData.serviceType,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="bg-white border-slate-200 text-slate-800">
-                        <SelectValue placeholder="Chọn gói cước" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-slate-200 text-slate-800 w-48">
-                        <SelectItem value="STANDARD">
-                          Chuyển phát Tiết kiệm
-                        </SelectItem>
-                        <SelectItem value="FAST">
-                          Chuyển phát Hỏa tốc
-                        </SelectItem>
-                        <SelectItem value="AI_EXPRESS">
-                          <span className="flex items-center gap-1.5 text-amber-600 font-medium">
-                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />{" "}
-                            AI Route Express
-                          </span>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
 
@@ -589,11 +842,11 @@ export default function CreateOrderModal({
             </div>
 
             {/* FOOTER CỐ ĐỊNH Ở ĐÁY */}
-            <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100 shrink-0">
+            <DialogFooter className="p-4 grid grid-cols-1 lg:grid-cols-12 items-center gap-3 bg-slate-50 border-t border-slate-100 shrink-0">
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11 rounded-xl shadow-md shadow-blue-500/20"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11 rounded-xl shadow-md shadow-blue-500/20 xl:col-span-8 "
               >
                 {loading ? (
                   <>
@@ -605,6 +858,14 @@ export default function CreateOrderModal({
                     <Truck className="mr-2 h-4 w-4" /> Xác Nhận Tạo Đơn Hàng
                   </>
                 )}
+              </Button>
+              <Button
+                onClick={handleClearData}
+                disabled={loading}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold h-11 rounded-xl shadow-md shadow-red-500/20 xl:col-span-4"
+              >
+                <Eraser className="mr-2 h-4 w-4" />
+                Xóa dữ liệu
               </Button>
             </DialogFooter>
           </form>
