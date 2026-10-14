@@ -139,6 +139,8 @@ exports.createOrder = async (req, res) => {
       metadata = {},
     } = req.body;
 
+    console.log(req.body)
+
     const tracking_code = generateTrackingCode();
 
     const volumetric_weight = (length_cm * width_cm * height_cm) / 5000;
@@ -205,6 +207,7 @@ exports.createOrder = async (req, res) => {
     res.status(201).json({
       message: "Tạo đơn hàng thành công",
       order: newOrder,
+      success: true,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
