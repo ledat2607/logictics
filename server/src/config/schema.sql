@@ -17,7 +17,7 @@ CREATE TABLE users (
         CHECK (role IN ('admin', 'customer', 'driver', 'warehouse_staff')),
     
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
-    avatar_url TEXT,
+    avatar_url TEXT DEFAULT 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
     metadata JSONB DEFAULT '{}'::jsonb, -- Lưu cấu hình riêng, tích hợp bên 3PL...
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

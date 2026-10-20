@@ -4,6 +4,7 @@ const db = require("./config/db");
 
 // Routes
 const orderRoutes = require("./routes/order");
+const authRoutes = require("./routes/auth");
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -17,7 +18,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      
       if (
         !origin ||
         allowedOrigins.indexOf(origin) !== -1 ||
@@ -52,7 +52,9 @@ app.get("/", (req, res) => {
 });
 
 // 5. ĐÍNH KÈM ROUTES VÀO APP (Rất quan trọng!)
-app.use("/api/orders", orderRoutes); // Thay /api/orders đúng với endpoint của bạn
+app.use("/api/orders", orderRoutes);
+app.use("/api/auth", authRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server đang chạy tại http://localhost:${PORT}`);

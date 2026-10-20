@@ -80,6 +80,8 @@ export default function CreateOrderModal({
     trackingCode: string;
   } | null>(null);
 
+  const token = localStorage.getItem("token");
+
   // Form State
   const [formData, setFormData] = useState({
     senderName: "",
@@ -123,19 +125,18 @@ export default function CreateOrderModal({
         // Thông tin người gửi
         sender_name: formData.senderName,
         sender_phone: formData.senderPhone,
-        sender_address_full: formData.senderAddress, // 👈 Đổi sender_address -> sender_address_full
-        sender_province: senderGeoInfo.province, // 👈 Thêm sender_province nếu cầ
-        sender_district: senderGeoInfo.district, // 👈 Thêm sender_district nếu cần
+        sender_address_full: formData.senderAddress,
+        sender_province: senderGeoInfo.province,
+        sender_district: senderGeoInfo.district,
 
-        // Thông tin người nhận
         receiver_name: formData.receiverName,
         receiver_phone: formData.receiverPhone,
-        receiver_address_full: formData.receiverAddress, // 👈 Đổi receiver_address -> receiver_address_full
-        receiver_province: receiverGeoInfo.province, // 👈 Thêm receiver_province nếu cần
-        receiver_district: receiverGeoInfo.district, // 👈 Thêm receiver_district nếu cần
+        receiver_address_full: formData.receiverAddress,
+        receiver_province: receiverGeoInfo.province,
+        receiver_district: receiverGeoInfo.district,
 
         // Thông tin hàng hóa & Kích thước
-        package_name: formData.packageName || "Hàng hóa tiêu chuẩn", // 👈 Đổi item_name -> package_name
+        package_name: formData.packageName || "Hàng hóa tiêu chuẩn",
         weight_kg:
           Number(formData.weight_kg) || Number(formData.weight_kg) || 1,
         length_cm:
@@ -144,18 +145,19 @@ export default function CreateOrderModal({
         height_cm:
           Number(formData.height_cm) || Number(formData.height_cm) || 10,
 
-        // Thông tin cước & Thanh toán
         service_type: formData.serviceType || "STANDARD",
         distance_km: distance || 0,
         shipping_fee: calculatedFee,
         payer: formData.payer || "sender",
         cod_amount: calculatedFee || 0,
-        // insurance_fee: Number(formData.insuranceFee) || 0,
         note: formData.note || "", // 👈 Đổi notes -> note
       };
       const res = await fetch(`${baseUrl}/api/orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify(payload),
       });
 
@@ -168,18 +170,15 @@ export default function CreateOrderModal({
           data.order?.id ||
           "Mới";
 
-        // 1. Hiển thị Toast của Sonner
         toast.success("🎉 Tạo đơn hàng thành công!", {
           description: `Mã vận đơn: ${trackingCode}`,
         });
 
-        // 3. Đóng Modal
         if (onClose) onClose();
 
         setFormData(initialFormData);
         setErrorMessage(null);
       } else {
-        // Trường hợp backend trả về lỗi 500/400
         const errorMsg = data.error || data.message || "Tạo đơn hàng thất bại!";
         toast.error("⚠️ Lỗi tạo đơn hàng", { description: errorMsg });
         setErrorMessage(errorMsg);
