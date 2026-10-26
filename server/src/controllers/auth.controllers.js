@@ -100,18 +100,23 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password, phone_number } = req.body;
+    const identifier =
+      req.body.account_identifier || req.body.email || req.body.phone;
+    const { password } = req.body;
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return res.status(400).json({
         success: false,
-        error: "Vui lòng nhập đầy đủ Email và Mật khẩu!",
+        error: "Vui lòng nhập đầy đủ Email/SĐT và Mật khẩu!",
       });
     }
-
     // Tìm user theo email
-    const userQuery = `SELECT * FROM users WHERE email = $1;`;
-    const { rows } = await db.query(userQuery, [email.toLowerCase().trim()]);
+    const userQuery = await db.query(
+      "SELECT * FROM users WHERE (email = $1 OR phone = $1) AND status = 'active'",
+      [identifier],
+    );
+
+    const { rows } = userQuery;
 
     if (rows.length === 0) {
       return res.status(401).json({
@@ -147,9 +152,8 @@ exports.login = async (req, res) => {
       role: user.role,
       created_at: user.created_at,
       status: user.status,
+      avatar: user.avatar_url,
     };
-
-    console.log("🔑 Đăng nhập thành công:", user.email);
 
     return res.json({
       success: true,
