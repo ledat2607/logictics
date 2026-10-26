@@ -11,15 +11,24 @@ import {
   Calculator,
   ShieldCheck,
   Zap,
+  User,
+  LogOut,
+  LayoutDashboard,
+  LucideLogOut,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import CreateOrderModal from "../user/order/create-order-modal";
+import Link from "next/link";
+import { useAuth } from "@/hooks/user-auth";
+import { AvatarDropdown } from "./avatar-menu";
 
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState<string>("hero");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const { user, isAuthenticated, logoutSession, loading } = useAuth();
 
   const navItems = [
     { id: "hero", label: "Trang chủ", icon: Package },
@@ -78,12 +87,11 @@ export default function Navbar() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-slate-200/90 backdrop-blur-xl border-b border-slate-100/80 py-2.5 shadow-xl rounded-b-2xl"
+            ? "bg-slate-200/90 backdrop-blur-xl border-b border-slate-100/80 shadow-xl shadow-gray-50/90 rounded-b-2xl"
             : "bg-slate-200/60 backdrop-blur-sm py-3"
         }`}
       >
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
-          {/* Logo rút gọn linh hoạt trên mobile */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
           <a
             href="#hero"
             onClick={(e) => scrollToSection(e, "hero")}
@@ -124,11 +132,22 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-2">
             <Button
               onClick={() => setOpen(true)}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-blue-600/20"
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white cursor-pointer font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-blue-600/20"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Tạo đơn</span>
             </Button>
+            {isAuthenticated && user ? (
+              <AvatarDropdown user={user} logout={logoutSession} />
+            ) : (
+              <Link
+                href="/auth"
+                className="flex items-center justify-center w-full gap-1.5 rounded-lg border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Đăng nhập</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Toggle Button */}
@@ -147,36 +166,73 @@ export default function Navbar() {
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-transparent backdrop-blur-2xl px-4 py-4 space-y-2 animate-in duration-200">
-            {navItems.map((item) => {
-              const active = activeSection === item.id;
-              const Icon = item.icon;
-              return (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => scrollToSection(e, item.id)}
-                  className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition ${
-                    active
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-600"
-                      : "text-blue-800 hover:bg-slate-900"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
+          <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100 px-5 py-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-200">
+            <div className="space-y-1.5">
+              {navItems.map((item) => {
+                const active = activeSection === item.id;
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    onClick={(e) => scrollToSection(e, item.id)}
+                    className={`flex items-center justify-between p-3.5 rounded-xl text-sm font-semibold transition-all ${
+                      active
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4 h-4" />
+                      <span>{item.label}</span>
+                    </div>
+                    {active && (
+                      <span className="w-2 h-2 rounded-full bg-white" />
+                    )}
+                  </a>
+                );
+              })}
+            </div>
+
+            <div className="h-px bg-slate-100 my-2" />
+
+            <div className="space-y-3 pt-1">
+              <Button
+                onClick={() => setOpen(true)}
+                className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-lg shadow-blue-600/20"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Tạo đơn hàng mới</span>
+              </Button>
+
+              {isAuthenticated && user ? (
+                <div className="pt-2">
+                  <div className="flex items-center justify-between p-3.5 bg-slate-50/90 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* 💡 Chèn trực tiếp Component AvatarDropdown của cậu */}
+                      <AvatarDropdown user={user} logout={logoutSession} />
+
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate text-xs font-bold text-slate-800">
+                          {user.full_name}
+                        </span>
+                        <span className="truncate text-[11px] font-medium text-slate-400">
+                          Chạm vào avatar để mở menu
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  {active && <span className="w-2 h-2 rounded-full bg-white" />}
-                </a>
-              );
-            })}
-            <Button
-              onClick={() => setOpen(true)}
-              className="flex items-center w-full gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-lg shadow-blue-600/20"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Tạo đơn</span>
-            </Button>
+                </div>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="flex items-center justify-center gap-2 w-full rounded-xl border border-blue-600 py-3 text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Đăng nhập hệ thống</span>
+                </Link>
+              )}
+            </div>
           </div>
         )}
       </header>
