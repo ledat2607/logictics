@@ -153,6 +153,9 @@ exports.login = async (req, res) => {
       created_at: user.created_at,
       status: user.status,
       avatar: user.avatar_url,
+      tier: user.tier,
+      loyalty_points: user.loyalty_points,
+      identity_verified: user.identity_verified,
     };
 
     return res.json({
