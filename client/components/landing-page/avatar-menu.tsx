@@ -17,6 +17,7 @@ import {
   PersonStanding,
   Settings,
 } from "lucide-react";
+import Link from "next/link";
 
 interface AvatarDropdownProps {
   user: User;
@@ -57,12 +58,12 @@ export function AvatarDropdown({ user, logout }: AvatarDropdownProps) {
         {/* 🌟 2. DANH SÁCH MENU TÍNH NĂNG 🌟 */}
         <DropdownMenuGroup className="space-y-0.5">
           {/* Trang cá nhân */}
-          <DropdownMenuItem className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100/80 cursor-pointer transition-colors">
-            <span className="flex items-center gap-2.5">
+          <Link href={"/profile"}>
+            <DropdownMenuItem className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100/80 cursor-pointer transition-colors">
               <PersonStanding className="size-4 text-blue-600" />
               Trang cá nhân
-            </span>
-          </DropdownMenuItem>
+            </DropdownMenuItem>
+          </Link>
 
           {(user?.role === "ADMIN" || user?.role === "DRIVER") && (
             <DropdownMenuItem className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100/80 cursor-pointer transition-colors">
