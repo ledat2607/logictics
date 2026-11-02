@@ -15,7 +15,7 @@ export interface User {
   email?: string;
   phone?: string;
   role?: string;
-  avatar?: string;
+  avatar_url?: string;
 
   tier?: string;
   loyalty_points?: number;
@@ -64,7 +64,6 @@ export function useAuth() {
       if (decryptedUser) {
         setUser(decryptedUser);
       } else {
-        // Nếu giải mã thất bại (dữ liệu bị lỗi/chỉnh sửa bừa), xóa sạch
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
@@ -73,7 +72,6 @@ export function useAuth() {
   }, []);
 
   const loginSession = useCallback((newToken: string, userData: User) => {
-    // 🔒 Mã hóa trước khi lưu vào localStorage
     const encryptedToken = encryptData(newToken);
     const encryptedUser = encryptData(userData);
 
@@ -84,6 +82,7 @@ export function useAuth() {
 
     setToken(newToken);
     setUser(userData);
+    
   }, []);
 
   const logoutSession = useCallback(() => {

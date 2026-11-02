@@ -4,7 +4,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "logistix_super_secret_key_2026";
 module.exports = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  // 💡 CHẶN: Không có header, không bắt đầu bằng Bearer, hoặc token là chuỗi "null"/"undefined"
   if (
     !authHeader ||
     !authHeader.startsWith("Bearer ") ||
@@ -22,7 +21,9 @@ module.exports = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+
     req.user = decoded;
+    
     return next();
   } catch (error) {
     return res.status(403).json({
