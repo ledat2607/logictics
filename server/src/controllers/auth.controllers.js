@@ -78,11 +78,7 @@ exports.register = async (req, res) => {
       { expiresIn: JWT_EXPIRES_IN || "7d" },
     );
 
-    console.log(
-      "👤 Đăng ký người dùng mới thành công:",
-      newUser.email,
-      newUser.phone,
-    );
+    console.log("👤 Đăng ký người dùng mới thành công:", newUser.email);
 
     return res.status(201).json({
       success: true,
