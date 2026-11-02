@@ -40,8 +40,12 @@ export function AvatarDropdown({ user, logout }: AvatarDropdownProps) {
       <DropdownMenuContent className="w-64 rounded-2xl p-2 shadow-xl border border-slate-100 bg-white/95 backdrop-blur-md">
         {/* 🌟 1. THÔNG TIN NGƯỜI DÙNG (USER HEADER) 🌟 */}
         <div className="flex items-center gap-3 p-3 bg-slate-50/80 rounded-xl mb-1 border border-slate-100">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 font-bold text-white shadow-md shadow-blue-500/20 text-sm">
-            {user?.full_name?.charAt(0).toUpperCase() || "U"}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-600 to-indigo-600 font-bold text-white shadow-md shadow-blue-500/20 text-sm">
+            <img
+              src={user.avatar}
+              alt="Avatar"
+              className="h-full w-full object-cover rounded-full p-1"
+            />
           </div>
           <div className="flex flex-col min-w-0 flex-1">
             <span className="truncate text-xs font-bold text-slate-800">

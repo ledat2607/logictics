@@ -6,46 +6,43 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   User,
-  Mail,
-  Phone,
   ShieldCheck,
-  Save,
   Loader2,
   Camera,
   CreditCard,
   Award,
   Plus,
-  CheckCircle2,
   ShieldAlert,
   ArrowLeft,
-  Sparkles,
   Wallet,
   Shield,
   Ship,
+  MapPin,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";
 import { ProfileGeneralForm } from "@/components/user/profile/profile-form";
+import AddressBookPage from "@/components/user/profile/address-form";
 
 export default function ProfilePage() {
   const { user, token, loading: authLoading, loginSession } = useAuth();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<
-    "general" | "kyc" | "bank" | "membership"
+    "general" | "kyc" | "addresses" | "order" | "bank" | "membership"
   >("general");
   const [loading, setLoading] = useState(false);
 
-  // States thông tin cá nhân
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string>(user?.avatar_url || "");
+
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     phone: "",
   });
 
-  // States Định danh KYC
   const [identityNumber, setIdentityNumber] = useState("");
 
   useEffect(() => {
@@ -61,23 +58,18 @@ export default function ProfilePage() {
       phone: user.phone || "",
     });
 
-    if (user.avatar) setPreviewUrl(user.avatar);
+    if (user.avatar_url) setPreviewUrl(user.avatar_url);
   }, [user, authLoading, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateProfile = async (values: any) => {
     setLoading(true);
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
     try {
       const dataForm = new FormData();
-      dataForm.append("full_name", formData.full_name);
-      dataForm.append("email", formData.email);
-      dataForm.append("phone", formData.phone);
+      dataForm.append("full_name", values.full_name);
+      dataForm.append("email", values.email);
+      dataForm.append("phone", values.phone);
 
       if (selectedFile) dataForm.append("avatar", selectedFile);
 
@@ -92,11 +84,10 @@ export default function ProfilePage() {
 
       const updatedUser = {
         ...user,
-        ...formData,
-        avatar: data.avatar || user?.avatar,
+        ...data.user,
       };
 
-      //if (token) loginSession(token, updatedUser);
+      if (token) loginSession(token, updatedUser);
       toast.success("Cập nhật thông tin thành công!");
     } catch (err: any) {
       toast.error(err.message || "Có lỗi xảy ra!");
@@ -112,6 +103,7 @@ export default function ProfilePage() {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-slate-900/5 py-10 px-4 sm:px-6 lg:px-8">
@@ -228,6 +220,7 @@ export default function ProfilePage() {
                       label: "Định danh tài khoản (KYC)",
                       icon: ShieldCheck,
                     },
+                    { id: "addresses", label: "Sổ địa chỉ", icon: MapPin },
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -332,7 +325,7 @@ export default function ProfilePage() {
               {activeTab === "general" && (
                 <ProfileGeneralForm
                   user={user}
-                  onSubmit={() => {}}
+                  onSubmit={handleUpdateProfile}
                   loading={loading}
                 />
               )}
@@ -409,6 +402,8 @@ export default function ProfilePage() {
                 </div>
               )}
 
+              {activeTab === "addresses" && <AddressBookPage />}
+
               {/* TAB 3: THẺ & NGÂN HÀNG (NHẬN TIỀN COD) */}
               {activeTab === "bank" && (
                 <div className="space-y-6">
@@ -429,7 +424,7 @@ export default function ProfilePage() {
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     {/* Bank Card Mock */}
-                    <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white space-y-4 shadow-lg relative overflow-hidden">
+                    <div className="p-5 rounded-2xl bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 text-white space-y-4 shadow-lg relative overflow-hidden">
                       <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black tracking-widest text-slate-300">
