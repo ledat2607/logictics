@@ -65,7 +65,7 @@ export const useOrder = (initialPage = 1, initialLimit = 10) => {
   const fetchOrders = useCallback(
     async (currentPage = page, currentLimit = limit) => {
       const BASE_URL =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       try {
         setLoading(true);
         setError(null);
