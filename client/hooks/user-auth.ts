@@ -15,11 +15,14 @@ export interface User {
   email?: string;
   phone?: string;
   role?: string;
-  avatar_url?: string;
+  avatar?: string;
 
   tier?: string;
   loyalty_points?: number;
   identity_verified?: boolean;
+  identity_number?: string;
+  identity_front_url?: string;
+  identity_back_url?: string;
 }
 
 // Hàm hỗ trợ mã hóa dữ liệu
@@ -33,7 +36,7 @@ const encryptData = (data: any) => {
 };
 
 // Hàm hỗ trợ giải mã dữ liệu
-const decryptData = (ciphertext: string) => {
+export const decryptData = (ciphertext: string) => {
   try {
     const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
     const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
@@ -82,7 +85,6 @@ export function useAuth() {
 
     setToken(newToken);
     setUser(userData);
-    
   }, []);
 
   const logoutSession = useCallback(() => {
@@ -95,6 +97,14 @@ export function useAuth() {
       router.push("/auth");
     }, 1000);
   }, [router]);
+  
+  const updateUser = useCallback((userData: User) => {
+    const encryptedUser = encryptData(userData);
+    if (encryptedUser) {
+      localStorage.setItem("user", encryptedUser);
+    }
+    setUser(userData);
+  }, []);
 
   return {
     user,
@@ -103,5 +113,6 @@ export function useAuth() {
     loading,
     loginSession,
     logoutSession,
+    updateUser,
   };
 }

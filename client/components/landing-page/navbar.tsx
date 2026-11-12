@@ -81,7 +81,6 @@ export default function Navbar() {
       setActiveSection(id);
     }
   };
-
   return (
     <>
       <header
@@ -209,7 +208,6 @@ export default function Navbar() {
                 <div className="pt-2">
                   <div className="flex items-center justify-between p-3.5 bg-slate-50/90 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-3 min-w-0">
-                      {/* 💡 Chèn trực tiếp Component AvatarDropdown của cậu */}
                       <AvatarDropdown user={user} logout={logoutSession} />
 
                       <div className="flex flex-col min-w-0">

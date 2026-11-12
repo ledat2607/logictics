@@ -152,6 +152,9 @@ exports.login = async (req, res) => {
       tier: user.tier,
       loyalty_points: user.loyalty_points,
       identity_verified: user.identity_verified,
+      identity_number: user.identity_number,
+      identity_front_url: user.identity_front_url,
+      identity_back_url: user.identity_back_url,
     };
 
     return res.json({

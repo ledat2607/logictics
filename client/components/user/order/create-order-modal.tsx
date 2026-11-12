@@ -35,6 +35,7 @@ import { useOrderPricing } from "@/hooks/caculate";
 import { Textarea } from "@/components/ui/textarea";
 import { parseAddressComponents } from "@/hooks/custom";
 import { toast } from "sonner";
+import { decryptData } from "@/hooks/user-auth";
 
 interface CreateOrderModalProps {
   isOpen: boolean;
@@ -83,10 +84,12 @@ export default function CreateOrderModal({
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    setToken(storedToken);
+    const encryptedToken = localStorage.getItem("token");
+    if (encryptedToken) {
+      const decryptedToken = decryptData(encryptedToken);
+      setToken(decryptedToken);
+    }
   }, []);
-
   // Form State
   const [formData, setFormData] = useState({
     senderName: "",
@@ -115,6 +118,8 @@ export default function CreateOrderModal({
       height: formData.height_cm,
     });
 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -140,7 +145,6 @@ export default function CreateOrderModal({
         receiver_province: receiverGeoInfo.province,
         receiver_district: receiverGeoInfo.district,
 
-        // Thông tin hàng hóa & Kích thước
         package_name: formData.packageName || "Hàng hóa tiêu chuẩn",
         weight_kg:
           Number(formData.weight_kg) || Number(formData.weight_kg) || 1,
@@ -155,7 +159,7 @@ export default function CreateOrderModal({
         shipping_fee: calculatedFee,
         payer: formData.payer || "sender",
         cod_amount: calculatedFee || 0,
-        note: formData.note || "", // 👈 Đổi notes -> note
+        note: formData.note || "",
       };
       const res = await fetch(`${baseUrl}/api/orders`, {
         method: "POST",
@@ -850,7 +854,7 @@ export default function CreateOrderModal({
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11 rounded-xl shadow-md shadow-blue-500/20 xl:col-span-8 "
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11 rounded-xl shadow-md shadow-blue-500/20 md:col-span-6 lg:col-span-8"
               >
                 {loading ? (
                   <>
@@ -866,7 +870,7 @@ export default function CreateOrderModal({
               <Button
                 onClick={handleClearData}
                 disabled={loading}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold h-11 rounded-xl shadow-md shadow-red-500/20 xl:col-span-4"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold h-11 rounded-xl shadow-md shadow-red-500/20 md:col-span-6 lg:col-span-4"
               >
                 <Eraser className="mr-2 h-4 w-4" />
                 Xóa dữ liệu

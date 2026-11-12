@@ -4,7 +4,6 @@ const router = express.Router();
 const orderController = require("../controllers/order-controllers");
 const verifyToken = require("../middlewares/auth.middleware");
 
-
 // 1. Tính cước phí
 router.post("/calculate-fee", orderController.calculateFee);
 
@@ -16,5 +15,8 @@ router.get("/tracking/:code", orderController.getTracking);
 
 // 4. Cập nhật trạng thái đơn hàng
 router.patch("/:id/status", orderController.updateOrderStatus);
+
+//5. Lấy danh sách đơn hàng của người dùng
+router.get("/all-orders", verifyToken, orderController.getOrderByUser);
 
 module.exports = router;
