@@ -31,8 +31,10 @@ export function AvatarDropdown({ user, logout }: AvatarDropdownProps) {
         render={
           <Button variant="ghost" size="icon" className="rounded-full">
             <Avatar>
-              <AvatarImage src={user.avatar_url} alt="shadcn" />
-              <AvatarFallback>{user.full_name.slice(0, 1)}</AvatarFallback>
+              <AvatarImage src={user.avatar} alt="Avatar" />
+              <AvatarFallback>
+                {user.full_name?.slice(0, 1)?.toUpperCase() || "U"}
+              </AvatarFallback>
             </Avatar>
           </Button>
         }
@@ -42,7 +44,7 @@ export function AvatarDropdown({ user, logout }: AvatarDropdownProps) {
         <div className="flex items-center gap-3 p-3 bg-slate-50/80 rounded-xl mb-1 border border-slate-100">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-600 to-indigo-600 font-bold text-white shadow-md shadow-blue-500/20 text-sm">
             <img
-              src={user.avatar_url}
+              src={user.avatar}
               alt="Avatar"
               className="h-full w-full object-cover rounded-full p-1"
             />

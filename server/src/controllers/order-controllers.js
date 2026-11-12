@@ -115,8 +115,15 @@ exports.calculateFee = async (req, res) => {
  */
 exports.createOrder = async (req, res) => {
   try {
+    const currentUserId = req.user?.userId || req.user?.id;
+
+    if (!currentUserId) {
+      return res
+        .status(401)
+        .json({ error: "Không tìm thấy thông tin định danh người dùng!" });
+    }
+
     const {
-      customer_id,
       sender_name,
       sender_phone,
       sender_address_full,
@@ -129,17 +136,16 @@ exports.createOrder = async (req, res) => {
       receiver_district,
       package_name,
       weight_kg,
-      length_cm = 0,
-      width_cm = 0,
-      height_cm = 0,
-      cod_amount = 0,
-      insurance_fee = 0,
-      payer = "sender",
-      note,
-      metadata = {},
-    } = req.body;
+      length_cm,
+      width_cm,
+      height_cm,
 
-    console.log(req.body)
+      cod_amount,
+      insurance_fee,
+      payer,
+      note,
+      metadata,
+    } = req.body;
 
     const tracking_code = generateTrackingCode();
 
@@ -165,10 +171,9 @@ exports.createOrder = async (req, res) => {
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, 'created', $24, $25
       ) RETURNING *;
     `;
-
     const values = [
       tracking_code,
-      customer_id || null,
+      currentUserId || null,
       sender_name,
       sender_phone,
       sender_address_full,
@@ -319,5 +324,54 @@ exports.updateOrderStatus = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+/**get all order by user id */
+exports.getOrderByUser = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ error: "Không tìm thấy thông tin định danh người dùng!" });
+    }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    // 1. Sửa lại thành customer_id cho khớp với cơ sở dữ liệu
+    const countQuery = `SELECT COUNT(*) FROM orders WHERE customer_id = $1;`;
+    const countResult = await db.query(countQuery, [userId]);
+    const totalOrders = parseInt(countResult.rows[0].count, 10);
+
+    // 2. Thêm LIMIT và OFFSET vào câu lệnh truy vấn chính
+    const query = `
+      SELECT * FROM orders 
+      WHERE customer_id = $1 
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3;
+    `;
+
+    // 3. Truyền đủ 3 tham số [userId, limit, offset] vào mảng thực thi
+    const result = await db.query(query, [userId, limit, offset]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Lấy danh sách đơn hàng thành công!",
+      orders: result.rows,
+      pagination: {
+        currentPage: page,
+        perPage: limit,
+        totalOrders: totalOrders,
+        totalPages: Math.ceil(totalOrders / limit),
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error getting user orders:", error);
+    res.status(500).json({
+      error: error.message || "Lỗi hệ thống khi lấy danh sách đơn hàng!",
+    });
   }
 };

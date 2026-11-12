@@ -13,6 +13,14 @@ router.put(
   userController.updateProfile,
 );
 
-
+router.post(
+  "/kyc",
+  verifyToken,
+  upload.fields([
+    { name: "front_image", maxCount: 1 },
+    { name: "back_image", maxCount: 1 },
+  ]),
+  userController.updateKYC,
+);
 
 module.exports = router;
