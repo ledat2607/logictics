@@ -82,12 +82,12 @@ const KYCForm = ({ user, onUpdateSuccess }: KYCFormProps) => {
     formData.append("identity_number", rawIdentityNumber);
     if (frontImage) formData.append("front_image", frontImage);
     if (backImage) formData.append("back_image", backImage);
-
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
     try {
       setLoading(true);
       const token = localStorage.getItem("token"); 
 
-      const res = await fetch("http://localhost:5000/api/user/kyc", {
+      const res = await fetch(`${baseUrl}/api/user/kyc`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
