@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { decryptData } from "./user-auth";
+import { decryptData, encryptData } from "./user-auth";
 
 export interface Order {
   id: string;
@@ -66,27 +66,67 @@ export const useOrder = (initialPage = 1, initialLimit = 10) => {
     async (currentPage = page, currentLimit = limit) => {
       const BASE_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      try {
-        setLoading(true);
-        setError(null);
-        const encryptedToken = localStorage.getItem("token");
-        const token = encryptedToken ? decryptData(encryptedToken) : "";
 
-        if (!token) {
-          throw new Error(
-            "Không tìm thấy token xác thực. Vui lòng đăng nhập lại!",
-          );
-        }
-        const response = await fetch(
+      const getDecryptedToken = () => {
+        const encryptedToken = localStorage.getItem("token");
+        return encryptedToken ? decryptData(encryptedToken) : "";
+      };
+
+      const requestOrders = async (accessToken: string) => {
+        return fetch(
           `${BASE_URL}/api/orders/all-orders?page=${currentPage}&limit=${currentLimit}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           },
         );
+      };
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        let token = getDecryptedToken();
+        if (!token) {
+          throw new Error(
+            "Không tìm thấy token xác thực. Vui lòng đăng nhập lại!",
+          );
+        }
+
+        let response = await requestOrders(token);
+
+        // Nếu Access Token hết hạn (401) -> gọi /api/auth/refresh để xin token mới và gọi lại 1 lần
+        if (response.status === 401) {
+          const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const refreshData = await refreshRes.json();
+          const newToken = refreshData?.accessToken || refreshData?.token;
+
+          if (!refreshRes.ok || !newToken) {
+            throw new Error(
+              refreshData?.error ||
+                "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!",
+            );
+          }
+
+          const encryptedNewToken = encryptData(newToken);
+          if (encryptedNewToken) {
+            localStorage.setItem("token", encryptedNewToken);
+          }
+
+          // Gọi lại API lấy danh sách đơn hàng với token mới
+          response = await requestOrders(newToken);
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -95,8 +135,9 @@ export const useOrder = (initialPage = 1, initialLimit = 10) => {
 
         setOrders(data.orders || []);
         setPagination(data.pagination || {});
-      } catch (err) {
+      } catch (err: any) {
         console.error("❌ Lỗi khi tải danh sách đơn hàng:", err);
+        setError(err?.message || "Đã xảy ra lỗi khi tải danh sách đơn hàng!");
       } finally {
         setLoading(false);
       }

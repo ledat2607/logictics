@@ -5,6 +5,24 @@ const bcrypt = require("bcryptjs");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
+const {
+  getRefreshTokenExpiryDate,
+  hashToken,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} = require("../utils/token");
+
+const setRefreshTokenCookie = (res, refreshToken) => {
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    path: "/",
+  });
+};
+
 exports.register = async (req, res) => {
   try {
     const { full_name, email, phone, password, role = "CUSTOMER" } = req.body;
@@ -106,7 +124,8 @@ exports.login = async (req, res) => {
         error: "Vui lòng nhập đầy đủ Email/SĐT và Mật khẩu!",
       });
     }
-    // Tìm user theo email
+
+    // Tìm user theo email hoặc phone và trạng thái active
     const userQuery = await db.query(
       "SELECT * FROM users WHERE (email = $1 OR phone = $1) AND status = 'active'",
       [identifier],
@@ -117,29 +136,45 @@ exports.login = async (req, res) => {
     if (rows.length === 0) {
       return res.status(401).json({
         success: false,
-        error: "Email hoặc mật khẩu không chính xác!",
+        error: "Email/SĐT hoặc mật khẩu không chính xác!",
       });
     }
 
     const user = rows[0];
 
-    // So sánh mật khẩu băm
+    // So sánh mật khẩu băm với cột password_hash
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        error: "Email hoặc mật khẩu không chính xác!",
+        error: "Email/SĐT hoặc mật khẩu không chính xác!",
       });
     }
 
-    // Tạo JWT Token
-    const token = jwt.sign(
-      { userId: user.id, role: user.role, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "7d" },
+    // 1. Tạo Access Token (ngắn hạn) & Refresh Token (dài hạn)
+    const tokenPayload = {
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+    };
+
+    const accessToken = generateAccessToken(tokenPayload);
+    const refreshToken = generateRefreshToken({ userId: user.id });
+
+    // 2. Hash Refresh Token và lưu vào bảng refresh_tokens
+    const tokenHash = hashToken(refreshToken);
+    const expiresAt = getRefreshTokenExpiryDate();
+
+    await db.query(
+      `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, tokenHash, expiresAt],
     );
 
-    // Trả về thông tin không bao gồm password_hash
+    // 3. Gắn Refresh Token vào HttpOnly Cookie
+    setRefreshTokenCookie(res, refreshToken);
+
+    // 4. Trả về thông tin user không bao gồm password_hash
     const userProfile = {
       id: user.id,
       full_name: user.full_name,
@@ -160,7 +195,8 @@ exports.login = async (req, res) => {
     return res.json({
       success: true,
       message: "Đăng nhập thành công!",
-      token,
+      accessToken,
+      token: accessToken,
       user: userProfile,
     });
   } catch (error) {
@@ -168,5 +204,149 @@ exports.login = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, error: "Lỗi hệ thống khi đăng nhập!" });
+  }
+};
+
+exports.refreshToken = async (req, res) => {
+  try {
+    const incomingRefreshToken = req.cookies?.refreshToken;
+
+    if (!incomingRefreshToken) {
+      return res.status(401).json({
+        success: false,
+        error: "Không tìm thấy Refresh Token!",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = verifyRefreshToken(incomingRefreshToken);
+    } catch (err) {
+      res.clearCookie("refreshToken", { path: "/" });
+      return res.status(401).json({
+        success: false,
+        error: "Refresh Token không hợp lệ hoặc đã hết hạn!",
+      });
+    }
+
+    const tokenHash = hashToken(incomingRefreshToken);
+
+    // 2. Truy vấn bản ghi trong bảng refresh_tokens
+    const tokenQuery = await db.query(
+      "SELECT * FROM refresh_tokens WHERE token_hash = $1",
+      [tokenHash],
+    );
+    const storedToken = tokenQuery.rows[0];
+
+    if (!storedToken) {
+      return res.status(401).json({
+        success: false,
+        error: "Refresh Token không tồn tại trong hệ thống!",
+      });
+    }
+
+    // 3. Phát hiện tái sử dụng token đã bị revoke -> thu hồi toàn bộ phiên của user
+    if (storedToken.revoked_at) {
+      await db.query(
+        "UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL",
+        [storedToken.user_id],
+      );
+      res.clearCookie("refreshToken", { path: "/" });
+      return res.status(401).json({
+        success: false,
+        error: "Refresh Token đã bị thu hồi. Vui lòng đăng nhập lại!",
+      });
+    }
+
+    // 4. Kiểm tra hết hạn trong DB
+    if (new Date(storedToken.expires_at) <= new Date()) {
+      return res.status(401).json({
+        success: false,
+        error: "Refresh Token đã hết hạn!",
+      });
+    }
+
+    // 5. Lấy thông tin user mới nhất để ký Access Token
+    const userQuery = await db.query(
+      "SELECT id, role, email, status FROM users WHERE id = $1",
+      [decoded.userId],
+    );
+    const user = userQuery.rows[0];
+
+    if (!user || user.status !== "active") {
+      res.clearCookie("refreshToken", { path: "/" });
+      return res.status(401).json({
+        success: false,
+        error: "Tài khoản không tồn tại hoặc đã bị khóa!",
+      });
+    }
+
+    // 6. Token Rotation: thu hồi refresh token cũ & tạo cặp token mới
+    await db.query(
+      "UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = $1",
+      [storedToken.id],
+    );
+
+    const newAccessToken = generateAccessToken({
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+    });
+    const newRefreshToken = generateRefreshToken({ userId: user.id });
+    const newTokenHash = hashToken(newRefreshToken);
+    const newExpiresAt = getRefreshTokenExpiryDate();
+
+    await db.query(
+      `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, newTokenHash, newExpiresAt],
+    );
+
+    setRefreshTokenCookie(res, newRefreshToken);
+
+    return res.json({
+      success: true,
+      message: "Làm mới token thành công!",
+      accessToken: newAccessToken,
+      token: newAccessToken,
+    });
+  } catch (error) {
+    console.error("Lỗi Refresh Token:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Lỗi hệ thống khi làm mới token!",
+    });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    const incomingRefreshToken = req.cookies?.refreshToken;
+
+    if (incomingRefreshToken) {
+      const tokenHash = hashToken(incomingRefreshToken);
+      await db.query(
+        "UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1 AND revoked_at IS NULL",
+        [tokenHash],
+      );
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+
+    return res.json({
+      success: true,
+      message: "Đăng xuất thành công!",
+    });
+  } catch (error) {
+    console.error("Lỗi Logout:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Lỗi hệ thống khi đăng xuất!",
+    });
   }
 };

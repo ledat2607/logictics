@@ -1,7 +1,9 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const db = require("./config/db");
-
+const cookieParser = require("cookie-parser");
 // Routes
 const orderRoutes = require("./routes/order");
 const authRoutes = require("./routes/auth");
@@ -27,7 +29,7 @@ app.use(
       ) {
         callback(null, true);
       } else {
-        callback(null, true); // Nếu vẫn bị chặn, cho phép tạm thời để debug
+        callback(null, true);
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -38,6 +40,7 @@ app.use(
 
 // 2. Middleware đọc JSON
 app.use(express.json());
+app.use(cookieParser());
 
 // 3. Test kết nối DB
 db.query("SELECT NOW()", (err, res) => {
