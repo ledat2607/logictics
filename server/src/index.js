@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const orderRoutes = require("./routes/order");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
-
+const addressRoutes = require("./routes/address");
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -60,6 +60,7 @@ app.get("/", (req, res) => {
 app.use("/api/orders", orderRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/addresses", addressRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server đang chạy tại http://localhost:${PORT}`);
